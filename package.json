@@ -11,7 +11,9 @@
   "engines": {
     "node": "~0.4.7"
   },
-  "dependencies": {},
+  "dependencies": {
+    "commander" : ">= 0.0.1"
+  },
   "devDependencies": {
     "coffee-script" : ">= 0.1"
   , "showdown" : ">= 0.0.1"
