@@ -14,5 +14,6 @@
   "dependencies": {},
   "devDependencies": {
     "coffee-script" : ">= 0.1"
+  , "showdown" : ">= 0.0.1"
   }
 }
