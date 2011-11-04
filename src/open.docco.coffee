@@ -55,7 +55,7 @@ module.exports =
       for section, i in sections
         section.code_html = highlight_start + fragments[i] + highlight_end
         section.docs_html = showdown.makeHtml section.docs_text
-      callback()
+      callback?()
   
     if pygments.stdin.writable
       pygments.stdin.write((section.code_text for section in sections).join(language.divider_text))
@@ -121,7 +121,7 @@ module.exports =
 
   # Ensure that the destination directory exists.
   ensure_directory: (dir, callback) ->
-    exec "mkdir -p #{dir}", -> callback()
+    exec "mkdir -p #{dir}", -> callback?()
 
   # Micro-templating, originally by John Resig, borrowed by way of
   # [Underscore.js](http://documentcloud.github.com/underscore/).
