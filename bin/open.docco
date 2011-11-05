@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-var program = require('commander');
-
-function list(val) {
-    return val.split(',');
-}
+program = require('commander');
+path = require('path');
+var fs = require('fs');
+var coffee = require('coffee-script');
+lib = path.join(path.dirname(fs.realpathSync(__filename)), '../src/');
 
 program
     .version('0.0.0')
     .option('-r, --recursive', 'Recursively parse the file tree.')
     .option('-m, --maintain', 'Maintain the file structure in the output.')
-    .option('-o, --output <files>', 'Output directory for the generated documentation.')
+    .option('-o, --output <directory>', 'Output directory for the generated documentation.')
     .parse(process.ARGV);
     
-console.log(program);
+openDocco = require(lib + 'index');
