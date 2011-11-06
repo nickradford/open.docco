@@ -1,24 +1,45 @@
-fs = require 'fs'
+### Open.Docco
+
+Require certain libraries
+###
+
+fs       = require 'fs'
+path     = require 'path'
 global._ = require 'underscore'
 _.mixin require 'underscore.string'
 
-### OpenDocco
-- Bullet 1
-- Bullet 2
+### Exports
 
-**Bold**
+Exports a class which handles generating html documentation.
 
-_Underlined_
-
-(google)[http://google.com]
+Documentation is written in a literary-programming style, where
+comments preceding a block of code directly relate to the code
+which follows.
 ###
 module.exports = class OpenDocco 
-  @output    = null
-  @maintain  = null
-  @recursive = null
-  
   constructor: (options) -> 
-    @output = if options.output? then options.output else 'docs'
+    @output    = options.output
+    @maintain  = options.maintain
+    @recursive = options.recursive
+    @args      = options.args
+    
+  build: -> 
+    filePaths = []
+    for filePath in @args
+      filePath = fs.realpathSync filePath
+      console.log 'filePath', filePath
+      if fs.statSync(filePath).isDirectory()
+        if @recursive
+          readDirRecursive filePath, (fileArr) -> 
+            files = fileArr
+        else
+          files = fs.readDirSync filePath
+        filePaths.concat _(files).endsWith 'coffee'
+    
+    console.log 'filePaths', filePaths
+        
+      
+      
   
   generateHtml: (filePath) ->
     source = @getFileContents filePath
@@ -68,3 +89,39 @@ module.exports = class OpenDocco
   getFileContents: (filePath) -> 
     filePath = fs.realpathSync(filePath)
     fs.readFileSync filePath, 'utf-8'
+    
+readDirRecursive = (start, callback) -> 
+  fs.stat start, (err, stat) -> 
+    return callback? err if err
+    
+    console.log 'start', start
+  
+    found =
+      dirs: []
+      files: []
+    total = 0
+    processed = 0
+  
+    isDir = (abspath) -> 
+      fs.stat abspath, (err, stat) -> 
+        if stat.isDirectory()
+          found.dirs.push abspath
+          readDirRecursive abspath, (err, data) -> 
+            found.dirs = found.dirs.concat data.dirs
+            found.files = found.files.concat data.files
+            processed += 1
+            if processed is total
+              console.log 'found', found
+              callback? null, found
+        else
+          found.files.push abspath
+          processed += 1
+          if processed is total
+            console.log 'found', found
+            callback? null, found
+    if stat.isDirectory()
+      fs.readdir start, (err, files) -> 
+        total = files.length
+        isDir path.join(start, file) for file in files
+    else
+      return callback? new Error "Path: #{start} is not a directory"
