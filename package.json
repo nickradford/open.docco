@@ -15,6 +15,7 @@
     "commander" : ">= 0.0.1"
   , "underscore" : ">= 0.0.1"
   , "underscore.string" : ">= 0.0.1"
+  , "open.core" : ">= 0.0.1"
   },
   "devDependencies": {
     "coffee-script" : ">= 0.1"

@@ -3,9 +3,11 @@
 Require certain libraries
 ###
 
-fs       = require 'fs'
-path     = require 'path'
-global._ = require 'underscore'
+fs        = require 'fs'
+path      = require 'path'
+global._  = require 'underscore'
+core      = require 'open.core'
+coreFs    = core.util.fs
 _.mixin require 'underscore.string'
 
 ### Exports
@@ -18,32 +20,36 @@ which follows.
 ###
 module.exports = class OpenDocco 
   constructor: (options) -> 
-    @output    = options.output
+    @output    = options.output || "./docs/"
     @maintain  = options.maintain
     @recursive = options.recursive
     @args      = options.args
     
   build: -> 
     filePaths = []
-    for filePath in @args
-      filePath = fs.realpathSync filePath
-      console.log 'filePath', filePath
-      if fs.statSync(filePath).isDirectory()
-        if @recursive
-          readDirRecursive filePath, (fileArr) -> 
-            files = fileArr
-        else
-          files = fs.readDirSync filePath
-        filePaths.concat _(files).endsWith 'coffee'
+    path = @args[0]
+    if fs.statSync(path).isDirectory()
+      paths = coreFs.readDirSync @args[0], deep:@recursive, hidden:false
+    else
+      paths = [path]
+    paths = _(paths).reject (p) -> _(p).include('node_modules') or fs.statSync(p).isDirectory()
+    filePaths = _(paths).filter (p) -> _(p).endsWith '.coffee' 
     
-    console.log 'filePaths', filePaths
-        
-      
-      
+    files = []
+    
+    _(filePaths).each (path) => 
+      parsedSource = @getSource path
+      files.push
+        path: path
+        parsedSource: parsedSource
+    
+    _(files).each (obj) ->
+      console.log 'obj.path', obj.path
   
-  generateHtml: (filePath) ->
+  getSource: (filePath) ->
     source = @getFileContents filePath
     sections = @parseSource source
+    sections
   
   ### parseSource 
   
@@ -81,7 +87,9 @@ module.exports = class OpenDocco
     commentString = ""
     codeString = ""
     
-    return sections
+    # _(sections).each (section) -> console.log 'section', section
+    
+    sections
   
   ### getFileContents
   - filePath: path to the file which will be parsed.
@@ -90,38 +98,3 @@ module.exports = class OpenDocco
     filePath = fs.realpathSync(filePath)
     fs.readFileSync filePath, 'utf-8'
     
-readDirRecursive = (start, callback) -> 
-  fs.stat start, (err, stat) -> 
-    return callback? err if err
-    
-    console.log 'start', start
-  
-    found =
-      dirs: []
-      files: []
-    total = 0
-    processed = 0
-  
-    isDir = (abspath) -> 
-      fs.stat abspath, (err, stat) -> 
-        if stat.isDirectory()
-          found.dirs.push abspath
-          readDirRecursive abspath, (err, data) -> 
-            found.dirs = found.dirs.concat data.dirs
-            found.files = found.files.concat data.files
-            processed += 1
-            if processed is total
-              console.log 'found', found
-              callback? null, found
-        else
-          found.files.push abspath
-          processed += 1
-          if processed is total
-            console.log 'found', found
-            callback? null, found
-    if stat.isDirectory()
-      fs.readdir start, (err, files) -> 
-        total = files.length
-        isDir path.join(start, file) for file in files
-    else
-      return callback? new Error "Path: #{start} is not a directory"
