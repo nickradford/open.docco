@@ -25,6 +25,9 @@ module.exports = class OpenDocco
     @recursive = options.recursive
     @args      = options.args
     
+    @output = path.resolve @output    
+    
+    
   build: -> 
     filePaths = []
     path = @args[0]
@@ -42,9 +45,12 @@ module.exports = class OpenDocco
       files.push
         path: path
         parsedSource: parsedSource
+    try
+      fs.mkdirSync @output, "0777"
+    catch error
+      console.log "Directory #{@output} already exists."
     
-    _(files).each (obj) ->
-      console.log 'obj.path', obj.path
+    _(files).each (obj) => @createFile obj
   
   getSource: (filePath) ->
     source = @getFileContents filePath
@@ -97,4 +103,10 @@ module.exports = class OpenDocco
   getFileContents: (filePath) -> 
     filePath = fs.realpathSync(filePath)
     fs.readFileSync filePath, 'utf-8'
+    
+  
+  ### createFile
+  
+  ###
+  createFile: (obj) -> 
     
