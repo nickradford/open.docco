@@ -8,6 +8,7 @@ path      = require 'path'
 global._  = require 'underscore'
 core      = require 'open.core'
 coreFs    = core.util.fs
+fs.mkdirp = require 'mkdirp'
 _.mixin require 'underscore.string'
 
 ### Exports
@@ -24,17 +25,16 @@ module.exports = class OpenDocco
     @maintain  = options.maintain
     @recursive = options.recursive
     @args      = options.args
-    
-    @output = path.resolve @output    
+    @output    = path.resolve @output    
     
     
   build: -> 
     filePaths = []
-    path = @args[0]
-    if fs.statSync(path).isDirectory()
-      paths = coreFs.readDirSync @args[0], deep:@recursive, hidden:false
+    inPath = @args[0]
+    if fs.statSync(inPath).isDirectory()
+      paths = coreFs.readDirSync inPath, deep:@recursive, hidden:false
     else
-      paths = [path]
+      paths = [inPath]
     paths = _(paths).reject (p) -> _(p).include('node_modules') or fs.statSync(p).isDirectory()
     filePaths = _(paths).filter (p) -> _(p).endsWith '.coffee' 
     
@@ -45,10 +45,8 @@ module.exports = class OpenDocco
       files.push
         path: path
         parsedSource: parsedSource
-    try
-      fs.mkdirSync @output, "0777"
-    catch error
-      console.log "Directory #{@output} already exists."
+    
+    @makeDir @output
     
     _(files).each (obj) => @createFile obj
   
@@ -109,4 +107,13 @@ module.exports = class OpenDocco
   
   ###
   createFile: (obj) -> 
-    
+    filePath = path.resolve @output, obj.path
+    folderPath = _().strLeftBack '/'
+    fs.mkdirp.sync folderPath
+    fs.writeFileSync filePath, "Hello world"
+
+  ### makeDir
+  
+  ###  
+  makeDir: (path) -> 
+    fs.mkdirp path    
