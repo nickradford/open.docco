@@ -1,7 +1,7 @@
 {
   "author": "Nick Radford <nick@nicholasradford.com> (github.com/nickradford)",
   "name": "open.docco",
-  "description": "A wrapper ar ound the docco tool",
+  "description": "A wrapper around the docco tool.",
   "version": "0.0.0",
   "homepage": "nickradford.github.com/open.docco",
   "repository": {
